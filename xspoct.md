@@ -299,7 +299,7 @@ The on-chain confirmation must *really* be an on-chain transaction. As such, XSP
 
 
 ## Once destroyed, the Bitcoin can never be recovered
-In order to prove that the XSPOCT Note representing the Bitcoin (or other underlying cryptocurrency) cannot be converted back into Bitcoin that is usable on the Bitcoin network, unless a major change in the Bitcoin protocol occurs. 
+The Bitcoin is sent to a burn address in order to prove that the XSPOCT Note representing the Bitcoin (or other underlying cryptocurrency) cannot be converted back into Bitcoin that is usable on the Bitcoin network. This will continue to be the case unless a major change in the Bitcoin protocol occurs. 
 
 
 ## Protocol, once established, can never be changed for historical transactions

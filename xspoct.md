@@ -1,5 +1,5 @@
 # XCredits-Style Private, Off-Chain Transactions (XSPOCT)
-Author: James Jansson, CEO, XCredits
+Author: Dr James Jansson, Lead Researcher, CEO, XCredits
 
 **NOTE: this is NOT the XCredits Core whitepaper. It is simply a small part of the XCredits protocol, which can be applied to the Bitcoin protocol, and as such we have decided to release early. Please visit the [Contents](https://github.com/XCredits/xcredits-whitepapers/blob/master/README.md) to see the status of that paper.**
 

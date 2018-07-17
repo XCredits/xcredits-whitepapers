@@ -3,6 +3,8 @@ Author: Dr James Jansson, Lead Researcher, CEO, XCredits
 
 *Updated 18th July 2018*
 
+Watch the introductory video here: https://www.youtube.com/watch?v=qYigaenwuGU
+
 **NOTE: this is NOT the XCredits Core whitepaper. It is simply a small part of the XCredits protocol, which can be applied to the Bitcoin protocol, and as such we have decided to release early. Please visit the [Contents](https://github.com/XCredits/xcredits-whitepapers/blob/master/README.md) to see the status of that paper.**
 
 **WARNING: The protocol specified in the below paper is in DRAFT only. The protocol may change in the future. Given that this protocol may change, and the process requires destruction of Bitcoin to create XSPOCT, you should only convert and receive amounts that you are willing lose or experiment with.**

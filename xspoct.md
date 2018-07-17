@@ -1,6 +1,8 @@
 # XCredits-Style Private, Off-Chain Transactions (XSPOCT)
 Author: Dr James Jansson, Lead Researcher, CEO, XCredits
 
+*Updated 18th July 2018*
+
 **NOTE: this is NOT the XCredits Core whitepaper. It is simply a small part of the XCredits protocol, which can be applied to the Bitcoin protocol, and as such we have decided to release early. Please visit the [Contents](https://github.com/XCredits/xcredits-whitepapers/blob/master/README.md) to see the status of that paper.**
 
 **WARNING: The protocol specified in the below paper is in DRAFT only. The protocol may change in the future. Given that this protocol may change, and the process requires destruction of Bitcoin to create XSPOCT, you should only convert and receive amounts that you are willing lose or experiment with.**
@@ -11,14 +13,14 @@ In this paper we describe a new methodology for making private transactions in c
 
 Bitcoin and many other cryptocurrencies provide certainty through a public blockchain. Unfortunately, this leads to a loss of privacy, which may slow adoption of cryptocurrencies. 
 
-The XSPOCT technology can work with most established cryptocurrencies, including Bitcoin, Ethereum and other blockchains. XSPOCTs do not require a separate sidechain, and instead use the confirmation power of the underlying blockchain, removing the need for timelocks.
+The XSPOCT technology can work with most established cryptocurrencies, including Bitcoin, Ethereum and other blockchains. XSPOCTs do not require a separate sidechain, and instead use the confirmation power of the underlying blockchain.
 
 XSPOCTs allow (largely) private transactions in a hostile network between two people, either of whom may be blocked by the network ordinarily or who may be the target of tracking. 
 
 # Important links
 Demonstration code for this paper can found in the [XCredits XSPOCT Repo](https://github.com/xcredits/xspoct).
 
-This paper may go through some changes. You can find this paper, and its versions at [our GitHub repository.](https://github.com/XCredits/xcredits-whitepapers/blob/master/xspoct.md). 
+This paper may go through some changes. You can find this paper, and its versions at [our GitHub repository.](https://github.com/XCredits/xcredits-whitepapers/blob/master/xspoct.md). This paper has been updated to represent how the XSPOCT protocol actually works. You can see the old version [here](https://github.com/XCredits/xcredits-whitepapers/blob/6ca269aa4beb2824c206ac25a87cf888a8ba799d/xspoct.md).
 
 
 # Background
@@ -60,173 +62,259 @@ XSPOCT makes transactions private by ensuring that the proof that a transaction 
 In this example, we have Alice who currently has some Bitcoins, Alice's "Buddy", some as-yet-known person who wants to receive some XSPOCT, and "Comrade", some as-yet-known person who "Buddy" will do a transaction with in the future.
 
 ## 1 Creating XSPOCTs from Bitcoin
-### 1.1 Alice generates Spend Info Outputs
-In the Spend Info Output, there are two secrets:
 
-1. **Address Secret:** A private-key/public-key/address, which is the place where Bob will tell Comrade to look for proof he sent them funds in the future.
-2. **Hidden Secret:** A private-key/public-key, which will form part of the message of the transaction that Bob's future "Comrade" will decypher in order to determine that Bob sent "Comrade" the XSPOCT first.
+Alice creates some XSPOCT by burning some Bitcoin. She sends the Bitcoin to a special burn address that contains a hash that describes how the XSPOCT can be used in the future. 
 
-Alice makes sure to hold on to the private key corresponding to the Hidden Public Key, as this is the only way she will be able to spend her XSPOCT. She may also choose to keep the Address Secret's private key, as she will have to send a transaction to this address on the blockchain to prove she is moving the XSPOCT and she may want to recover the funds.
+### 1.1 Alice generates addresses from which she'll spend the XSPOCT
+First she creates a private key and corresponding address from which she will spend he XSPOCT in the future. In this example, Alice is creating two outputs with a single transaction, so she'll generate two key pairs
 
-## 1.2 Alice Creates a string of the Address Secret and public key of the Hidden Secret
 ~~~
-SpendInfoString = {
-  "address":  "mn189...",
-  "hiddenPublicKey": "a1b8...",
-  "specification": "0.1",
-  "verificationPlatform": "bitcoin-testnet", // where the next transaction will be found
+"proofInputPrivateKey": "7b2f582d69f818d6e0388b83b0807d212714d7bdb1afa794fb44722841b70812",
+"proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+~~~
+
+~~~
+"proofInputPrivateKey": "63f827fe9539d738a0bff259f1bef739a2ff924323628003ddd4d5d3696c704e",
+"proofInputAddress": "msSDeL7vz8AcbLSsiDT3tyRX2eF76ppqbd",
+~~~
+
+### 1.2 Alice generates Spend Info Strings which contain the instructions on how she can spend the above addresses
+The first address above would look like:
+~~~
+{
+  "proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+  "specification": "0.1.0",
+  "verificationPlatform": "bitcoin-testnet"
 }
 ~~~
 
-## 1.3 Alice hashes the Spend Info Strings
-There will be multiple Spend String Outputs included in this burner transaction. Alice doesn't want other people to know where she will later spend the XSPOCT. By combining the address and the hidden public secret, the resultant hashes cannot be used to find the future transactions on the blockchain.
-
-## 1.4 Alice generates a Burn Transaction String
-
+### 1.3 Alice hashes the Spend Info String to generate the Spend Info Hash
 ~~~
-burnTransactionString = '{
-    "source": utxo,
-    "isBurn": true,
-    "amount": "0.02"
-    "outputs": outputDetails,
-    "specification": "0.1",
-    "originalPlatform": 'bitcoin-testnet', // where the transaction came from
-  };
-}'
+"spendInfoHash":"b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4"
 ~~~
 
-There are two parts unspecified above, `utxo` and `outputDetails` in the above string, which we will expand below.
-
-`utxo` is the unspent transaction output from which the Bitcoin burn will occur.
+### 1.4 Alice puts the Spend Info Hashes into a Transaction String
 ~~~
-utxo = { 
-    "txId": "58e9829...",
-    "outputIndex": 0,
-    "address": "mnMTa...",
-    "script": "76a91...",
-    "amount": "0.55000000"
+{
+  "source": {
+    "utxo": "a23420bf69ad5948bddf61232181e2e1f0df51e5230107679051aa96f39c3ce5",
+    "platform": "bitcoin-testnet"
+  },
+  "outputs": [
+    {
+      "amount": 100000,
+      "spendInfoHash":
+        "b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4"
+    },
+    {
+      "amount": 100000,
+      "spendInfoHash":
+        "4e996b2b952038be26446bc6722327d349999e2b1e882fd5b4b0101a693dea34"
+    }
+  ],
+  "specification": "0.1.0"
 }
 ~~~
 
-`outputDetails` contains the details of the way that the XSPOCT can be spent in the future. It is an array of the spendInfoHashes and the amount that each hash should receive.
-
+### 1.5 Alice hashes the Transaction String, and converts it to a Bitcoin address
+Below is the address derived from the above Transaction String:
 ~~~
-outputDetails = [ 
-    { 
-      "spendInfoHash": "7c10f...",
-      "amount": "0.01"
-    }, { 
-      "spendInfoHash": "be5e6....",
-      "amount": "0.01"
-    ]
+mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3
 ~~~
+Note that this is a burn address.
 
-It is very important that each hash contains a public key from a brand new address, as the first correctly signed result will be considered the transaction that actually occurred.
 
-## 1.5 Burn some existing Bitcoin
-We'll be sending real Bitcoin to an unspendable address.
+### 1.6 Alice sends Bitcoin to the above burn address
+By sending the transaction to the above address, the Bitcoin becomes unspendable. We have now created an XSPOCT.
+
+### 1.7 Alice combines this information into an XSPOCT Note
 ~~~
-!! SENDING BITCOIN IN THIS WAY RENDERS THE BITCOIN UNRECOVERABLE TO A REGULAR BITCOIN!!
-~~~
-
-Double SHA256 hash the above burnTransactionString. This will become the "Public Key" where we are sending the coins. Generate an address from the public key above, then send the specified amount of Bitcoin to that address.
-
-I use the quotes for "public key" because it is not a real public key. There is no way to derive the private key from this fake public key. This is important, because we need to be able to prove that this Bitcoin cannot be sent elsewhere.
-
-## We have now successfully created XSPOCT from Bitcoin
-The next step is to send the XSPOCT to someone.
-
-## 2 Sending the XSPOCT from Alice to Alice's "buddy", Bob
-
-### 2.1 Bob Creates a string of the address and public key of the hidden secret
-As Alice did in 1.2, Bob will create his Spend Info Strings. In this example, Bob will not divide the outputs into smaller amounts, so he will only send a single Spend Info String.
-
-
-## 2.2 Bob hashes the spend info string, then sends it to Alice
-Bob doesn't want Alice to know where he will later spend the XSPOCT, so he sends her the hash of the Spend Info String.
-
-## 2.3 Alice generates a XSPOCT String
-~~~
-xspoctString = '{
-    "source": "7a8b...", // Hash of previous (or burn) transaction string
-    "amount": "0.01"
-    "outputs": [
-      {
-        "address":  "ma195...",
-        "hiddenPublicKey": "9c10...",
-        "specification": "0.1",
-        "verificationPlatform": "bitcoin-testnet"
-      }
-    ],
-    "originalPlatform": 'bitcoin-testnet',
-    "verificationPlatform": 'bitcoin-testnet'
-  };
-}'
+{
+  "burnTransactions": {
+    "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3": {
+      "transactionString":
+        "{\"source\":{\"utxo\":\"a23420bf69ad5948bddf61232181e2e1f0df51e5230107679051aa96f39c3ce5\",\"platform\":\"bitcoin-testnet\"},\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4\"},{\"amount\":100000,\"spendInfoHash\":\"4e996b2b952038be26446bc6722327d349999e2b1e882fd5b4b0101a693dea34\"}],\"specification\":\"0.1.0\"}",
+      "spendInfoStrings": {
+        "b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4":
+          "{\"proofInputAddress\":\"mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+      },
+      "txId": "da37bd10eca857f871bea23b67d8d7d1456156ce169ea0a2ec3c47598e985acb"
+    }
+  },
+  "xspoctTransactions": {},
+  "current": { "burnTransactionAddress": "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3" },
+  "next": {
+    "proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+    "proofInputPrivateKey":
+      "7b2f582d69f818d6e0388b83b0807d212714d7bdb1afa794fb44722841b70812"
+  },
+  "amount": 100000
+}
 ~~~
 
 
-## 2.4 Alice sends a small Proof Transaction to an address that is included in her Spend Info String
+## 2 Alice decides to send the XSPOCT to Bob
 
-Alice created an address in the Spend Info Strings in 1.2. She will send a Proof Transaction on the blockchain to an address in one of the Spend Info Strings to show that she wants to send that XSPOCT to Bob.
+Alice asks Bob to send his Spend Info Hash
 
-In the Bitcoin transaction description, she includes a string in the following format:
+### 2.1 Bob generates a address key pair
 ~~~
-hiddenPublicKeyHash + xspoctStringHash + signature
-~~~
-
-where 
- 
-- hiddenPublicKeyHash corresponds to the hidden public key Alice generated in 1.2.
-
-- xspoctStringHash is from 2.3
-
-- signature is derived from the hiddenPublicKey's private key generated in 1.2
-
-
-### Censorship resistance
-Externally, this looks just like random noise in hex format, like a collection of three hashes joined together. It is hoped that this will increase the censorship resistance of XSPOCTs
-
-The hiddenPublic key plays a very important role. When we send the transaction to the blockchain, it is possible a person who dislikes the idea of XSPOCTs may be listening, and looking for transactions that look like XSPOCTs. If they can send a bigger transaction to the address specified first, then they would be first on the blockchain with that address. As such, we cannot simply send a transaction to a secret address as proof. We need to include a message that includes a secret that only the receiver of the XSPOCT will know, but the sender can't lie about.
-
-Note that the system could have been designed such that the private key corresponding to the Bitcoin address signs the xspoctStringHash, such that the description is of the form: 
-~~~
-xspoctStringHash + signature
-~~~
-However, the nodes on the Bitcoin network would be able to tell that the first part of the message was signed by the receiving address, making it possible that the nodes may reject the transactions.
-
-We cannot hash the signature, because Bob needs to be able to prove that the signature corresponds to the hashed public key at the beginning. If we hashed the public key (i.e. the message looks like `hiddenPublicKeyHash + xspoctStringHash + hashOfSignature`), a person who wanted to prevent XSPOCTs would be able to send a transactions that looks like:
-~~~
-hiddenPublicKeyHash + fakeRandomCharactersXspoctStringHash + fakeRandomCharactersSignature
+"proofInputPrivateKey": "fd4bfb17cb53a06493e11de7e48b1d867f5ceda27eb7df0f877ba5d39ab66671"
+"proofInputAddress": "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT"
 ~~~
 
-Neither Bob, nor Alice, would be able to prove that the string wasn't a real transaction signed by the public key. 
+Note that this will the address that Bob will later spend his XSPOCT from. 
 
-## 2.5 Alice sends the details of the transaction and the burn information to Bob. 
+### 2.2 Bob creates a Spend Info String from the above address
+~~~
+{
+  "proofInputAddress": "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT",
+  "specification": "0.1.0",
+  "verificationPlatform": "bitcoin-testnet"
+}
+~~~
+### 2.3 Bob hashes Spend Info String to create the Spend Info Hash
+~~~
+960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4
+~~~
+Bob sends this Hash to Alice.
 
-Alice needs to send the data of the full chain of the transactions to Bob in order for Bob to determine whether the coin is derived from a real coin or not, and whether the coin has been spent elsewhere.
+### 2.4 Alice adds the Spend Info Hash into a Transaction string
+~~~
+{
+  "outputs": [
+    {
+      "amount": 100000,
+      "spendInfoHash":
+        "960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4"
+    }
+  ],
+  "specification": "0.1.0",
+  "changeAddresses": {
+    "mt1rAf391uQXAQLuRCNU1evXMSCPZsJ4qM": {
+      "message":
+        "960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4",
+      "signature":
+        "5d8fd921e4780c8b10caae5e486a5b079260dfad3a8281d93933cec0d10673314564044ad44ccc275015a3ab2fb4a2f375ed6c55a470d9dcb0286c81394d9214"
+    }
+  }
+}
+~~~
+Note that she also includes information about the change address, for the on-chain transaction, as she will have to prove that the change address is not another XSPOCT burn address. To do this, she creats a message, then signs is with the private key of the change address. 
 
-## 2.6 Bob checks on the blockchain that this process has occurred
-1) Bob hashes the Burn Transaction String, then generates an address from that hash. Bob then checks that the address hash received the real Bitcoins specified.
-2) Bob looks up the address that is specified in the address in the spendInfoString
-3) Bob checks that the message conforms to the format
-`hiddenPublicKeyHash + xspoctStringHash + signature` by checking:
+### 2.5 Alice hashes the above string, then converts the hash into a Proof Burn Address
+~~~
+mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3
+~~~
 
-- that the first 64 characters is the hash of the `hiddenPublicKey` 
-- that the second 64 characters is the hash of the `spendInfoString`
-- that the third 64 characters is the signature of the `spendInfoString` signed by the `hiddenPublicKey`
 
-## Bob has now confidently received a XSPOCT
-He can now send it to his Comrade, Charlie. 
+### 2.5 Alice does an on-chain transaction from her proofInput address, to the above Proof Burn Address
+This proves that the XSPOCT Note hash been transferred. 
 
-# Sending XSPOCTs from Bob to Charlie
-The methodology that Bob followed in section 2 is now followed by Charlie, and while Bob now does what Alice did in 2.
+### 2.6 Alice puts all the information Bob needs to validate this transaction into an XSPOCT note
 
-1. Charlie generates Spend Info Strings as Bob did in 2.1
-2. Charlie sends the hashes to Bob as Bob sent to Alice in 2.2
-3. Bob generates an XSPOCT string as Alice did in 2.3
-4. Bob sends a small Proof Transaction (like Alice did in 2.4) to an address that is included in his Spend Info String (that he generated in 2.1)
-5. Bob sends all the transaction details, from the burn transaction string Alice created, to the XSPOCT transaction string that Alice did to transfer to Bob, and finally the XSPOCT transaction string that Bob did to transfer to Charlie
-6. Charlie checks the original burn transaction like Bob did in 2.6, and all the subsequent XSPOCT transactions.
+### 2.7 Alice gives the XSPOCT Note to Bob
+Bob can now validate the transaction. 
+
+### 2.8 Bob adds his Spend Info String and Proof Input Private Key to the XSPOCT
+The spendInfoString, in this case, is under "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe" in "xspoctTransactions" and the private key is place in the "next" element.
+
+~~~
+{
+  "burnTransactions": {
+    "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3": {
+      "transactionString":
+        "{\"source\":{\"utxo\":\"a23420bf69ad5948bddf61232181e2e1f0df51e5230107679051aa96f39c3ce5\",\"platform\":\"bitcoin-testnet\"},\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4\"},{\"amount\":100000,\"spendInfoHash\":\"4e996b2b952038be26446bc6722327d349999e2b1e882fd5b4b0101a693dea34\"}],\"specification\":\"0.1.0\"}",
+      "spendInfoStrings": {
+        "b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4":
+          "{\"proofInputAddress\":\"mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+      },
+      "txId": "da37bd10eca857f871bea23b67d8d7d1456156ce169ea0a2ec3c47598e985acb"
+    }
+  },
+  "xspoctTransactions": {
+    "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe": {
+      "transactionString":
+        "{\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4\"}],\"specification\":\"0.1.0\",\"changeAddresses\":{\"mt1rAf391uQXAQLuRCNU1evXMSCPZsJ4qM\":{\"message\":\"960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4\",\"signature\":\"5d8fd921e4780c8b10caae5e486a5b079260dfad3a8281d93933cec0d10673314564044ad44ccc275015a3ab2fb4a2f375ed6c55a470d9dcb0286c81394d9214\"}}}",
+      "proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+      "proofBurnAddress": "mvrMnEHVX8Dy7HWuy4eyPY7vLKsssXcDbr",
+      "txId":
+        "9d78b91610b84813fe83b4a1c2e62b5d98b3b80b315071ba59f95b9644a8987a",
+      "spendInfoString":
+        "{\"proofInputAddress\":\"mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+    }
+  },
+  "current": {
+    "burnTransactionAddress": "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3",
+    "proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+    "proofBurnAddress": "mvrMnEHVX8Dy7HWuy4eyPY7vLKsssXcDbr"
+  },
+  "next": {
+    "proofInputAddress": "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT",
+    "proofInputPrivateKey":
+      "fd4bfb17cb53a06493e11de7e48b1d867f5ceda27eb7df0f877ba5d39ab66671"
+  },
+  "amount": 100000
+}
+~~~
+
+## 3 Bob sends the XSPOCT to Charlie
+
+To quickly summarise:
+1. Charlie sends Bob's a Spend Info Hash
+2. Bob sends Bitcoin on-chain from his proofInputAddress to the proofBurnAddress, which is derived from Charlie's Spend Info Hash
+3. Bob gives Charlie the XSPOCT
+4. Charlie validates that all the transactions exist on the blockchain.
+
+Charlie's XSPOCT ends up looking like:
+~~~
+{
+  "burnTransactions": {
+    "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3": {
+      "transactionString":
+        "{\"source\":{\"utxo\":\"a23420bf69ad5948bddf61232181e2e1f0df51e5230107679051aa96f39c3ce5\",\"platform\":\"bitcoin-testnet\"},\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4\"},{\"amount\":100000,\"spendInfoHash\":\"4e996b2b952038be26446bc6722327d349999e2b1e882fd5b4b0101a693dea34\"}],\"specification\":\"0.1.0\"}",
+      "spendInfoStrings": {
+        "b9129f5c77e8fb6815982d917834177270480610eb01f619062e558cb20912d4":
+          "{\"proofInputAddress\":\"mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+      },
+      "txId": "da37bd10eca857f871bea23b67d8d7d1456156ce169ea0a2ec3c47598e985acb"
+    }
+  },
+  "xspoctTransactions": {
+    "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe": {
+      "transactionString":
+        "{\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4\"}],\"specification\":\"0.1.0\",\"changeAddresses\":{\"mt1rAf391uQXAQLuRCNU1evXMSCPZsJ4qM\":{\"message\":\"960d62956b92ad03ff2c2fec99de0d742530a30f434fe08b9d386daff60aa0f4\",\"signature\":\"5d8fd921e4780c8b10caae5e486a5b079260dfad3a8281d93933cec0d10673314564044ad44ccc275015a3ab2fb4a2f375ed6c55a470d9dcb0286c81394d9214\"}}}",
+      "proofInputAddress": "mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe",
+      "proofBurnAddress": "mvrMnEHVX8Dy7HWuy4eyPY7vLKsssXcDbr",
+      "txId":
+        "9d78b91610b84813fe83b4a1c2e62b5d98b3b80b315071ba59f95b9644a8987a",
+      "spendInfoString":
+        "{\"proofInputAddress\":\"mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+    },
+    "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT": {
+      "transactionString":
+        "{\"previousProofAddress\":\"mpMCfPJXfxjc9QxkzL1p3TFtKth385XCCe\",\"outputs\":[{\"amount\":100000,\"spendInfoHash\":\"cb76b2eb96c25be8d84ead60a332d487a7aa9e19505a8950d9eaee6d30b57878\"}],\"specification\":\"0.1.0\",\"changeAddresses\":{\"mkcHE5CJNHCWCswLh39dwZ65AkbmYmpQUJ\":{\"message\":\"cb76b2eb96c25be8d84ead60a332d487a7aa9e19505a8950d9eaee6d30b57878\",\"signature\":\"54729f44c1825fb08a9e4ceb3ef8a835e678e0f320c7aa3b2777b810a39a8c3f3acbb7f88a24d683c19373d71121e72fac02bccda63a8b22abddaa6d5cfabf1c\"}}}",
+      "proofInputAddress": "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT",
+      "proofBurnAddress": "miq7bmV112au5NADGVqwUqqCTyijCoRKen",
+      "txId":
+        "4e3c409eb6e5372c8c9e1b6f84d0fdc0b1ae340cc6354a1b6b22e1ee9798598d",
+      "spendInfoString":
+        "{\"proofInputAddress\":\"mxnEYEG4QHUVcPj3ErkZ6J6Mbd46CdSn1i\",\"specification\":\"0.1.0\",\"verificationPlatform\":\"bitcoin-testnet\"}"
+    }
+  },
+  "current": {
+    "burnTransactionAddress": "mwj2rf9JZHVypkUVhBTapbDvCAr5xVtJQ3",
+    "proofInputAddress": "mvSvTT9w64rA6pmGsehbNtrEUytR6p9iyT",
+    "proofBurnAddress": "miq7bmV112au5NADGVqwUqqCTyijCoRKen"
+  },
+  "next": {
+    "proofInputAddress": "mxnEYEG4QHUVcPj3ErkZ6J6Mbd46CdSn1i",
+    "proofInputPrivateKey":
+      "af96deaa9835ed6066542b92d62edee04c66fe7b286b65558c56b83d18e53ba1"
+  },
+  "amount": 100000
+}
+~~~
 
 
 ## General comments about the methodology
@@ -239,7 +327,7 @@ It may be desirable to prove that the coins in question are no longer available 
 The double SHA256 is used to allow it to be proven that a transaction is an unspendable address without revealing the contents of the output details.
 
 
-# XSPOCT Notes 
+# XSPOCT Notes Discussion
 ## Choice of name
 I have chosen the name "XSPOCT Notes" to represent these tradable assets.
 

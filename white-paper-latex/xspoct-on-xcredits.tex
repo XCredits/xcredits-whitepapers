@@ -1,0 +1,47 @@
+\section{Privacy}
+XCredits has previously released \textit{XSPOCT: XCredits-Style Private Off Chain Transactions}\cite{xspoct}, which allows private tokenized bitcoin transactions on the Bitcoin blockchain. We intend to bring across some of these features into XCredits Platform, however the methodology used has limitations in a sharded, fork-merge-mining based systems. 
+
+\subsubsection{Limitations of XSPOCT system on Fork Merge Mining}
+With a system in which forks are merged, a privacy system such as the original XSPOCT specification which identifies the first transaction from a specified address does not have a system for rejecting duplicate transactions from the same address. 
+
+For example, imagine a private transaction $Tx_1$ sends an XSPOCT Note to address $a_1$. The owner of the private key associated with $a_1$ could create two transactions $Tx_2$ and $Tx'_2$, which send the XSPOCT note to different addresses. 
+
+The issue with this is that if the XSPOCT transaction is simply sent to an address, the Fork Merge Mining system doesn't understand that it should reject at least one of these transactions, meaning that one of the transactions could end up first in the chain even if it seemed like it would end up last in the chain. The ordering is important, because under the XSPOCT system, only the first transaction is taken to describe what happens to the XSPOCT.
+
+It should be noted that the entry of a side shard block hash result into the central shard effectively results in similar levels of confirmation power (for the same amount of proof-of-work) as Bitcoin, as the entry into the central chain has strong temporal ordering power. However, because merges may take some time to determine the final ordering or transactions, an XSPOCT system based on first transaction from an address could have slow transaction finalization time. It would be ideal to have private transactions have similar levels of confirmation latency as non-private transactions.
+
+\subsubsection{Solving the XSPOCT limitation on Fork Merge Mining}
+Rather than send the XSPOCT to an address, the XSPOCT can be sent to an unspent transaction output. In doing so, the Fork Merge Mining will correctly reject merges that contain duplicate transactions from unspent transaction outputs. 
+
+\subsection{Returning private XCredits and other private tokens to the main chain from XSPOCT notes}
+The original XSPOCT system sends the on-chain tokens to a burn address, thereby rendering them unspendable. It would be more desirable to be able to return the tokens to the main chains.
+
+
+
+Rather than burn the XCredits or tokens, the tokens are sent to a time lock address. To unlock the funds for the address, a user needs to present part of some of the private information that accompanies the XSPOCT Note. 
+
+To reduce the rate at which people make claims on tokens that no longer belong to them, there may be a deposit that is placed before claiming, for example 10\% of the total being claimed. 
+
+\subsubsection{Scenario 1: current legitimate owner claims tokens}
+\begin{enumerate}
+  \item Owner claims 50 tokens using hidden information about original transaction, places 10\% deposit of amount being claimed (5 tokens). 
+  \item Wait for time lock to expire. 
+  \item Owner receives amount being claimed (50 tokens) along with the deposit (5 tokens)
+\end{enumerate}
+
+\subsubsection{Scenario 2: current legitimate owner claims tokens, someone who used to own the XSPOCT Note tries to cheat}
+\begin{enumerate}
+  \item Owner claims 50 tokens using hidden information about original transaction, places 10\% deposit of amount being claimed (5 tokens).
+  \item Another previous owner tries to claim the tokens with secret information from a transaction after the original transaction but before the latest one, places a deposit of their own of 10\%
+  \item Current owner places more private information from the private data chain later down the private chain. The true owner may also need to report on-chain transactions in the case that the cheater double signs a transaction, and hence the true owner needs to establish the true first on-chain transaction.
+  \item Wait for time lock to expire. 
+  \item Owner receives amount being claimed (50 tokens) along with their deposit (5 tokens) and the tokens of the attempted cheater
+\end{enumerate}
+
+\subsubsection{Scenario 3: Previous owner tries to claim}
+If a previous owner tries to claim the XSPOCT Note, it will be up to the true owner of the XSPOCT Note to challenge the illegitimate claim. 
+\begin{enumerate}
+  \item Previous owner illegitimately claims XSPOCT Note worth 50 tokens, places a 10\% deposit (5 tokens).
+  \item Legitimate owner, who checks the chain regularly, notices a false claim.
+  \item Legitimate owner provides proof that illegitimate owner transferred tokens at least once. Note that this proof only needs to demonstrate that it was transferred, not that the person providing the proof is the \textit{current} legitimate owner. As such any owner in the chain can claim the tokens, and the current owner 
+\end{enumerate}

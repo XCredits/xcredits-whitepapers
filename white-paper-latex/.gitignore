@@ -1,0 +1,15 @@
+xcredits-white-paper.pdf
+xcredits-white-paper-pics.pdf
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+*.xdy
+*.out
+*.gls
+*.glsdefs
+*.glo
+*.glg
+*.toc
+*.synctex

@@ -156,7 +156,7 @@
 
 \title{Scaling blockchain systems through adversarial agreement models}
 \author{James Jansson}
-\date{December 2018} 
+\date{December 2018\footnote{This paper was updated from the original version released on 24 Dec 2018. To see a full list of changes, visit: https://github.com/XCredits/xcredits-whitepapers/commits/master/white-paper-latex/xcredits-white-paper.tex}} 
 \maketitle
 
 
@@ -166,7 +166,11 @@ Through the use of Proof-of-Work systems, blockchains such as Bitcoin provide an
 In this paper, a scaling solution for blockchains is proposed that uses a unique sharded solution, is secured by Proof-of-Work and uses an adversarial agreement model to establish a trust network between validators.
 
 Also introduced are a number of innovative methods which may be implemented independently on to other blockchain solutions: a method for reducing transaction processing latency through the use of variable-sized blocks (Microblocks), a method to compensate for blockchain forking and reusing Proof-of-Work (Fork Merge Mining) and a method to prevent the use of application specific integrated circuits (ASICs) to reduce mining centralization. 
+
 \end{abstract}
+
+
+
 
 \newpage
 
@@ -179,7 +183,7 @@ Making electronic payments is still a relatively hard thing for people to do. Th
 
 It is not only the very poor who are affected by the limitations of the traditional banking system. It is still surprisingly difficult to extract data from our bank accounts, automate payments, and link our banking payment data to other data such as reward schemes, invoices and accounting. Current banking systems are outdated, restrictive and not accessible, and this affects the economy of the whole world. 
 
-XCredits aims to improve financial autonomy around the world by putting the power back into the hands of the individual. XCredits will be a new value transfer system, one which makes it easy to store, analyze and act your own financial data. It is intended to be extraordinarily easy to send and receive payments using relatively inexpensive mobile phones. To ensure that it is truly accessible, XCredits will aim to be a highly scalable, low-fee, permissionless platform.
+XCredits aims to improve financial autonomy around the world by putting the power back into the hands of the individual. XCredits will be a new value transfer system, one which makes it easy to store, analyze and act on your own financial data. It is intended to be extraordinarily easy to send and receive payments using relatively inexpensive mobile phones. To ensure that it is truly accessible, XCredits will aim to be a highly scalable, low-fee, permissionless platform.
 
 To do this, there are key technical hurdles that we must overcome, some of which are outlined in this paper.
 
@@ -404,7 +408,7 @@ In XCredits we use the term \textit{\gls{microblocks}} to describe very small bl
 
 \subsection{Previous analysis of performance of block size/time}\label{block-time-performance}
 
-It has been shown by Vitalik Buterin that shorter block times lead to fast and more certain confirmations, as long as the network is not under attack \cite{onSlowAndFastBlockTimes}. It has also been argued that given 6-second block propagation times, that 12 second block rewards is reasonable \cite{towardA12SecondBlockTime}. 
+It has been shown by Vitalik Buterin that shorter block times lead to faster and more certain confirmations, as long as the network is not under attack \cite{onSlowAndFastBlockTimes}. It has also been argued that given 6-second block propagation times, that 12 second block rewards is reasonable \cite{towardA12SecondBlockTime}. 
 
 \subsection{Malicious validators with small hash rate}
 Consider a miner with 5\% of total mining power on the Bitcoin blockchain. That miner has a 4.5\% chance of being able to mine a new block before the next block is mined, causing a risk that the block mined may be selected by the network. Even if the network generates a second block, the malicious actor with 5\% of network power has a 0.25\% chance of mining a two new blocks to compete with the block leader and complete a double spend. 
@@ -412,7 +416,7 @@ Consider a miner with 5\% of total mining power on the Bitcoin blockchain. That 
 \begin{figure}[!htb]
   \centering
   \includegraphics[page=1,width=.95\textwidth]{5-percent-attack} 
-  \caption{An example of a 5\% attack on a blockchain such as Bitcoin. The potential for minors with relatively small mining power to double spend is part of the reason people making transactions must wait at least 6 confirmations, which usually takes an hour on Bitcoin.}
+  \caption{An example of a 5\% attack on a blockchain such as Bitcoin. The potential for miners with relatively small mining power to double spend is part of the reason people making transactions must wait at least 6 confirmations, which usually takes an hour on Bitcoin.}
   \label{fig:5-percent-attack}
 \end{figure}
 \FloatBarrier
@@ -1074,56 +1078,87 @@ blockObject = {
   x: 10321354,// Total real bytes ever on this side shard
   y: 51235465,// Total pseudobytes ever on this side shard, analogue to block height
   z: 3135353, // Total fees paid ever on this side shard
-  r: 52305, // block reward pot
+  r: 52305, // reward pot
   c: [centralChainRewardProof1, ...],// Central chain reward, optional
   s: 5000,// supplementary bytes in this block
   b: [mergedBlock1, ...],// Merged blocks
-  w: [tx1, ...],// Transactions
+  w: [tx1, ...],// Tx
   o: "1a531a...", // Miner Output Address
   m: 3, // Stochastic multiplier values: 2->10^2, 3->10^3, 4->10^4
   n: "jtk56bcr2", // Nonce
 }
 
-// Transaction Structure
+centralChainRewardProof1 = {
+  p: // Parent hash "Final central block hash result"
+  j: hashedJoinedHeader
+  n: []// nonce array
+}
+
+
+
+// Tx Structure
 tx1 = [{
-    i: [utxo1, ...], // inputs (from address)
-    o: [output1, ...], // outputs (to address)
+    i: [utxo1, ...], // inputs
+    o: [output1, ...], // outputs
     t: [token1, ...], // tokens
     s: [state1, ...], // states
-    c: [condition1, ...], // conditions
-    f: 200 // fees
+    c: condition1, // conditions
+    v: [parent1Hash, ...], // uniquely fulfills conditions of parent hash
+    f: 200, // fees
+    h: 23187682, // max block height by which time this transaction must go on to the blockchain (to allow transactions to cancel)
   },
-  [signatureForUtxo1, ...], 
-  [signatureForUtxo_TOKEN_1, ...]
+  [signatureForUtxo1, ...], // signatures for inputs, in order of utxo in "i" (for XCredits), the in order in "t" for tokens
 ]
-  // note that signatures are all on the outside of the transaction string. 
-  // This means the transaction can effectively be used as an exchange contract
-  // the transaction only goes ahead if all parties have signed the transaction. 
 
+// Note that signatures are all on the outside of the transaction string.
+// Imagine A->B 50XCredits and B->A 100CoffeeTokens. 
+// The transaction only goes ahead if all parties have signed the transaction. 
+// This means the transaction can effectively be used as an exchange contract.
 
 // Unspent transaction output structure
+// Note that the two utxo types are distinguished based on whether the first entry in the array is itself an array. 
 utxo1 = ["RqYZmUXxcKx4RIUc7noMQsevy9MLgaz+qWkgGJDjQNY", 2]
       // [txHash, outputNumber, (optional)merkleProof] 
+      // in the above case, the merkleProof is for a transaction output that is actually a Merkle Root for an Algebraic Merkle Tree
+
+utxo2 = [crossChainMerkleProof, "RqYZmUXxcKx4RIUc7noMQsevy9MLgaz+qWkgGJDjQNY", 2]
+      // [crossChainMerkleProof, txHash, outputNumber, (optional)merkleProof]
+
+crossChainMerkleProof = [];
+crossChainMerkleProof[0] = "a8bc7ab7a..."; // "Final central block hash result". This result should be in this side shard in order for it to be used
+
+crossChainMerkleProof[1] = []; // merkle proof of transaction existence
+
 
 output1 = [address1, amount]
 
-token1 = [{// only one entry per token
-    tokenId: 'settings.address.signature'
+token1 = {// only one entry per token
+    tokenId: 'settings.address.signature',
     inputs: [utxo_t_1, ...],
     outputs: [output_t_1, ...],
-  }
-];
-
+};
+    
 state1 = [ 
   '1adjhskjdhkas...', // address
-  '9s98d9e89wen...'. // hash of last tx that updated state
+  '9s98d9e89wen...', // hash of last tx that updated state
   '0938402342...', // newState
   '1asdnkasnk...', // new address for where to find this state (optional)
   '409kdhod89....' // signature
 ]
 
-// Side shard header
-joinedHeader = timeStamp + hashResultOfPreviousBlock + H(block)
+condition1 = {
+  o: [output1, ...],
+  t: [tokenCondition1, ...], // tokens
+  h: 61565313546 // time out on the block height to stop execution if conditions not met in time. Must be large than "h" on "tx1". 
+}
+
+tokenCondition1 = { // similar to token1 above, but no input requirements
+  tokenId: 'settings.address.signature',
+  outputs: [output_t_1, ...],
+};
+
+// Side shard block header
+joinedHeader = timeStamp + hashResultOfPreviousBlock + H(blockObject)
 + merkleTreeRoot + hashedJoinedHeaderOfMergedBlock1
 + hashedJoinedHeaderOfMergedBlock2 + ...;
 hashedJoinedHeader = H(joinedHeader);
@@ -1134,45 +1169,48 @@ if (hashResult<difficulty) {
   // Success!
 }
 
+// Note: merkleTreeRoot in this context is of recent transactions on the side shard.
+
 \end{lstlisting}
 
 \subsection{Central chain code structure}
 \begin{lstlisting}
-  // Central Chain Block structure
-  centralChainBlock = {
-    t: 1545192075, // Time stamp
-    p: "z09O2o...", // Parent hash
-    s: [ // states of all side shards
-      { // Shard 1
-        h: 'nsffsk1k2189...', // Hash state of Shard 1
-        x: 10321354, // Total real bytes Shard 1
-        y: 51235465, // Total pseudobytes Shard 1
-        z: 3135353, // Total fees paid Shard 1
-      }, 
-      { // Shard 2
-        h: 'fa116sdf1661...', // Hash state of Shard 2
-        x: 13533153, // Total real bytes Shard 2
-        y: 63827198, // Total pseudobytes Shard 2
-        z: 7651353 // Total fees paid Shard 2
-      }, 
-    ],
-    o: "1a531a...", // Miner Output Address
-  }
-  
-  // Central chain header
-  joinedHeader = timeStamp + hashResultOfParentBlock + H(centralChainBlock)
-  + merkleTreeRootOfSideShardStates;
-  hashedJoinedHeader = H(joinedHeader);
-  hashResult[0] = H(hashedJoinedHeader + nonce0);
-  hashResult[1] = H(hashResult[0] + nonce1);
-  hashResult[2] = H(hashResult[1] + nonce2);
-  hashResult[3] = H(hashResult[2] + nonce3);
-  hashResult[4] = H(hashResult[3] + nonce4);
-  hashResult[5] = H(hashResult[4] + nonce5);
-  hashResult[6] = H(hashResult[5] + nonce6);
-  hashResult[7] = H(hashResult[6] + nonce7);
-  hashResult[8] = H(hashResult[7] + nonce8);
-  hashResult[9] = H(hashResult[8] + nonce9);
+// Central Chain Block structure
+centralChainBlock = {
+  t: 1545192075, // Time stamp
+  p: "z09O2o...", // Parent hash, "Final central block hash result"
+  s: [ // states of all side shards
+    { // Shard 1
+      h: 'nsffsk1k2189...', // Hash state of Shard 1
+      x: 10321354, // Total real bytes Shard 1
+      y: 51235465, // Total pseudobytes Shard 1
+      z: 3135353, // Total fees paid Shard 1
+    }, 
+    { // Shard 2
+      h: 'fa116sdf1661...', // Hash state of Shard 2
+      x: 13533153, // Total real bytes Shard 2
+      y: 63827198, // Total pseudobytes Shard 2
+      z: 7651353 // Total fees paid Shard 2
+    }, 
+  ],
+  o: "1a531a...", // Miner Output Address
+}
+
+// Central chain header
+joinedHeader = timeStamp + hashResultOfParentBlock 
+  + H(centralChainBlock) + merkleTreeRootOfSideShardHashStates 
+  + difficulty + splitTrigger;
+hashedJoinedHeader = H(joinedHeader);
+hashResult[0] = H(hashedJoinedHeader + nonce0);
+hashResult[1] = H(hashResult[0] + nonce1);
+hashResult[2] = H(hashResult[1] + nonce2);
+hashResult[3] = H(hashResult[2] + nonce3);
+hashResult[4] = H(hashResult[3] + nonce4);
+hashResult[5] = H(hashResult[4] + nonce5);
+hashResult[6] = H(hashResult[5] + nonce6);
+hashResult[7] = H(hashResult[6] + nonce7);
+hashResult[8] = H(hashResult[7] + nonce8);
+hashResult[9] = H(hashResult[8] + nonce9); // "Final central block hash result"
 \end{lstlisting}
 
 \section{Proof-of-Work Mining Algorithm}
@@ -1262,7 +1300,18 @@ This process saves substantial download time, while still ensuring, with a high 
 In contrast, downloading `only' the headers of the Microblocks in XCredits is likely to be quite large, and is unlikely to make drastic savings in terms of download time. 
 
 
-To compensate for this, each block must contain a Merkle Tree of the last 1024 transactions in the shard. The transactions in the Merkle tree do not include transactions in the current block: it only includes transactions prior to the current block. The transactions are ordered by placement on the side shard. This operation should be relatively quick to calculate, and is partially reusable in the case that there is a conflict.
+To compensate for this, each block must contain a Merkle Tree of recent transactions in the shard. The transactions in the Merkle tree do not include transactions in the current block: it only includes transactions prior to the current block, and after the most recent central chain block reward inclusion. 
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[page=1,width=.95\textwidth]{block-header-merkle-tree} 
+  \caption{As the block reward for central chain result $c_{k+2}$ has not been claimed yet,the header for block $b_n$ must include transactions from blocks in the range indicated.}
+  \label{fig:block-header-merkle-tree}
+\end{figure}
+\FloatBarrier
+
+
+The transactions are ordered by placement on the side shard. This operation should be relatively quick to calculate, and is partially reusable in the case that there is a conflict.
 
 
 
@@ -1383,7 +1432,7 @@ $p_2.v$ provides the sum of all the transactions.
 Note that care must be taken when validating Algebraic Merkle Trees that all child values have a value $\geq 0$, else individuals will be able to give away more XCredits in the Merkle tree than are input to a Algebraic Merkle Tree transaction.
 
 \subsubsection{Forming a proof}
-Forming a proof for Algebraic Merkle Tree is similar to the Merkle Tree proof. At each node where the proof would ordinarily include a hash of large, ignored branch, we also include the sum of that branch, to allow the calculation of $p$ at each level. 
+Forming a proof for Algebraic Merkle Tree is similar to the Merkle Tree proof. At each node where the proof would ordinarily include a hash of a large, ignored branch, we also include the sum of that branch, to allow the calculation of $p$ at each level. 
 
 \subsubsection{Use cases}
 The primary use case is where a single address is intending to transfer XCredits to many hidden addresses through a Merkle Tree. 

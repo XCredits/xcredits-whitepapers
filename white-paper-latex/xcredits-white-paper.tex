@@ -1233,7 +1233,7 @@ The mining algorithm of XCredits side shards is very similar to Bitcoin, but has
 
 The nonce $n$ inside the block is changed until a successful hashResult is found. The merkleTreeRoot is for the merkle tree of 1,024 past transactions (transactions in this block are not included in the Merkle tree).
 
-Unlike Bitcoin, the nonce is placed inside the block contents, instead of being in the block header. It's not exactly analogous, but it is much more like updating the Bitcoin 'extraNonce' (a nonce placed in the Merkle Tree to mutate it slightly to come up with a different Merkle Root) rapidly rather than updating the nonce in the header rapidly.
+Unlike Bitcoin, the nonce is placed inside the block contents, instead of being in the block header. It's not exactly analogous, but it is much more like updating the Bitcoin `extraNonce' (a nonce placed in the Merkle Tree to mutate it slightly to come up with a different Merkle Root) rapidly rather than updating the nonce in the header rapidly.
 
 The advantage of placing the nonce in body section in XCredits, instead of in the Merkle tree as in Bitcoin, is that the XCredits mining algorithm doesn't require a recalculation of Merkle tree with each new hashing attempt. However, it does require transmission of entire block transaction data in string form. Given that there is the assumption the majority of blocks in XCredits will be microblocks, the size of the transaction data will be relatively small.
 
